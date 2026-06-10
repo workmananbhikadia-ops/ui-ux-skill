@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Org Chart to Org Built — 8-FTE Hiring Sequence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0B1B2B; --bg2:#0F2335; --panel:#13293D; --panel2:#16314a;
+  --gold:#C9A24B; --gold2:#E4C77E; --ink:#EAF1F8; --muted:#9DB2C6;
+  --line:rgba(201,162,75,0.22); --green:#5FB58A; --red:#D98A7A; --blue:#6BA8D6;
+  --grad:linear-gradient(135deg,#E4C77E,#C9A24B);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden}
+.slide-deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+@media(min-width:769px){.slide-deck{max-width:calc(100vh*16/9);max-height:calc(100vw*9/16);margin:auto;position:absolute;inset:0}}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:54px 64px;opacity:0;visibility:hidden;transition:opacity .4s;background:radial-gradient(120% 120% at 80% -10%,var(--bg2),var(--bg));overflow:hidden}
+.slide.active{opacity:1;visibility:visible}
+.slide-content{width:100%;max-width:100%;max-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px}
+h1,h2,h3,.eyebrow{font-family:'Space Grotesk',sans-serif}
+.slide-title{font-size:clamp(30px,5.4vw,66px);background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.08;font-weight:700}
+.eyebrow{letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-size:13px;font-weight:600;margin-bottom:6px}
+.sub{color:var(--muted);font-size:clamp(15px,2vw,21px);max-width:880px;line-height:1.5}
+.pill{display:inline-block;border:1px solid var(--line);color:var(--gold2);padding:5px 14px;border-radius:999px;font-size:12px;letter-spacing:.06em;font-weight:600}
+
+/* dense / left layouts */
+.slide.dense{padding:38px 56px}
+.slide.dense .slide-content{justify-content:flex-start;align-items:stretch;text-align:left;gap:12px;overflow-y:auto}
+.slide.dense::-webkit-scrollbar,.slide.dense .slide-content::-webkit-scrollbar{display:none}
+.head-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:4px}
+.head-row h2{font-size:clamp(22px,3.2vw,34px);font-weight:700}
+.head-row h2 .accent{color:var(--gold)}
+.tag{font-size:12px;color:var(--muted);white-space:nowrap}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h3{font-size:15px;color:var(--gold2);letter-spacing:.04em;margin-bottom:8px;text-transform:uppercase;font-weight:600}
+.card p,.card li{font-size:13.5px;color:var(--ink);line-height:1.5}
+.card.lite p,.card.lite li{color:#cdd9e6}
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.clean li{position:relative;padding-left:18px;color:#d4dfeb;font-size:13.3px;line-height:1.45}
+ul.clean li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:2px;background:var(--gold)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid rgba(157,178,198,.16)}
+th{color:var(--gold2);text-transform:uppercase;letter-spacing:.05em;font-size:11.5px;font-weight:600}
+td{color:#dbe5ef}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:600}
+.b-gold{background:rgba(201,162,75,.16);color:var(--gold2)}
+.b-green{background:rgba(95,181,138,.16);color:var(--green)}
+.b-blue{background:rgba(107,168,214,.16);color:var(--blue)}
+.b-red{background:rgba(217,138,122,.16);color:var(--red)}
+
+/* timeline */
+.tl{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.tl-row{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center}
+.tl-label{font-size:12.5px;color:var(--muted);text-align:right;font-weight:600}
+.bar{height:30px;border-radius:7px;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:600;color:#08151f;white-space:nowrap;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.track{position:relative;height:30px;background:rgba(255,255,255,.04);border-radius:7px}
+.track .bar{position:absolute;top:0}
+.months{display:grid;grid-template-columns:150px 1fr;gap:14px;margin-bottom:2px}
+.months .scale{display:grid;grid-template-columns:repeat(12,1fr);font-size:10.5px;color:var(--muted)}
+.months .scale span{text-align:center;border-left:1px solid rgba(157,178,198,.12);padding:2px 0}
+
+/* org chart */
+.org{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
+.node{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;min-width:150px}
+.node .role{font-weight:600;font-size:14px;color:var(--ink)}
+.node .meta{font-size:11px;color:var(--muted);margin-top:2px}
+.node.lead{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.org-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.gate-tag{font-size:10.5px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-top:4px;font-weight:600}
+
+.kpi{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.kpi .item{text-align:center}
+.kpi .big{font-size:clamp(30px,5vw,52px);font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-family:'Space Grotesk',sans-serif}
+.kpi .lab{font-size:12px;color:var(--muted);letter-spacing:.04em}
+
+.chart-wrap{width:min(92%,820px);height:clamp(220px,42vh,360px);margin:4px auto 0}
+.foot{position:fixed;left:64px;bottom:26px;font-size:11px;color:rgba(157,178,198,.5);letter-spacing:.08em;z-index:5}
+.assume{background:rgba(201,162,75,.08);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--gold2)}
+
+/* nav */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--gold);transition:width .3s;z-index:1000}
+.nav-controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:18px;z-index:1000}
+.nav-btn{background:rgba(201,162,75,.12);border:1px solid var(--line);color:var(--gold2);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px}
+.nav-btn:hover{background:rgba(201,162,75,.24)}
+.slide-counter{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+
+@media(max-width:768px){
+ .slide{padding:30px 22px}.slide.dense{padding:24px 20px}
+ .grid2,.grid3{grid-template-columns:1fr}
+ .tl-row,.months{grid-template-columns:84px 1fr}.tl-label{font-size:10.5px}
+ .foot{left:20px}
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-deck">
+
+<!-- 1 TITLE -->
+<div class="slide active">
+  <div class="slide-content">
+    <span class="eyebrow">Bangalore Residential Developer · Hiring Plan</span>
+    <h1 class="slide-title">From Org Chart<br>to Org Built</h1>
+    <p class="sub">An 8-FTE org structure, sequenced into a milestone-gated hiring plan — who must be in seat before <b>approvals</b>, before <b>launch</b>, and before <b>mobilization</b>.</p>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center">
+      <span class="pill">3 Milestone Gates</span>
+      <span class="pill">8 Seats</span>
+      <span class="pill">First 3 Hires: JD · Scorecard · Comp · Sourcing</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2 ASSUMED ORG -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>The <span class="accent">8-FTE</span> Org Structure</h2><span class="tag">Assumed baseline — confirm / edit</span></div>
+    <div class="org">
+      <div class="node lead"><div class="role">Founder / Managing Director</div><div class="meta">Exists · Seat 0 · capital, land, strategy</div></div>
+      <div class="org-row">
+        <div class="node"><div class="role">Liaisoning &amp; Approvals Mgr</div><div class="meta">Seat 1 · govt / RERA</div><div class="gate-tag">Gate 1 · Approvals</div></div>
+        <div class="node"><div class="role">Head of Sales &amp; Marketing</div><div class="meta">Seat 2 · demand &amp; brand</div><div class="gate-tag">Gate 2 · Launch</div></div>
+        <div class="node"><div class="role">Projects / Construction Head</div><div class="meta">Seat 3 · execution</div><div class="gate-tag">Gate 3 · Mobilize</div></div>
+        <div class="node"><div class="role">Finance &amp; Ops / CRM Mgr</div><div class="meta">Seat 4 · cash, compliance</div></div>
+      </div>
+      <div class="org-row">
+        <div class="node lite"><div class="role">Sales Executive ×2</div><div class="meta">Seats 5–6 · under S&amp;M Head</div></div>
+        <div class="node lite"><div class="role">Site Engineer</div><div class="meta">Seat 7 · under Projects Head</div></div>
+        <div class="node lite"><div class="role">Marketing / CRM Exec</div><div class="meta">Seat 8 · under S&amp;M Head</div></div>
+      </div>
+    </div>
+    <div class="assume" style="margin-top:12px">⚑ This structure was not supplied in our thread, so this is a standard mid-size Bangalore residential-developer baseline. Tell me your actual 8 roles and every downstream slide re-sequences automatically.</div>
+  </div>
+</div>
+
+<!-- 3 GATES -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Three Gates Drive the <span class="accent">Sequence</span></h2><span class="tag">Hire to unlock the next milestone — not by org-chart tidiness</span></div>
+    <div class="grid3" style="margin-top:6px">
+      <div class="card"><h3>① Approvals Gate</h3><p style="color:var(--muted);font-size:12px;margin-bottom:8px">Months 0–8</p><ul class="clean"><li>Land due diligence, plan sanction, RERA registration</li><li>BBMP/BDA, BESCOM, BWSSB, fire, environment NOCs</li><li><b>Blocker if empty:</b> project cannot legally start or sell</li></ul></div>
+      <div class="card"><h3>② Launch Gate</h3><p style="color:var(--muted);font-size:12px;margin-bottom:8px">Months 6–10</p><ul class="clean"><li>Brand, pricing, channel-partner network, pre-launch funnel</li><li>Sales team trained, CRM &amp; collateral live</li><li><b>Blocker if empty:</b> no demand engine = no bookings = no cashflow</li></ul></div>
+      <div class="card"><h3>③ Mobilization Gate</h3><p style="color:var(--muted);font-size:12px;margin-bottom:8px">Months 9–13</p><ul class="clean"><li>Contractor tendering, BOQ, schedule, QA/safety setup</li><li>Site establishment, vendor mobilization</li><li><b>Blocker if empty:</b> bookings made, but build can't start on time</li></ul></div>
+    </div>
+    <div class="card" style="margin-top:6px"><p style="font-size:13px;color:#cdd9e6"><b style="color:var(--gold2)">Rule of thumb —</b> hire each milestone's owner <b>with lead time</b>, not on the milestone date. A liaisoning hire needs ~6 months runway; an S&amp;M head needs ~3–4 months of pre-launch; a Projects head needs ~2 months for tendering before the first slab.</p></div>
+  </div>
+</div>
+
+<!-- 4 TIMELINE -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hiring Sequence — <span class="accent">In-Seat Timeline</span></h2><span class="tag">Bars show when each seat must be filled vs. project months</span></div>
+    <div class="months"><div></div><div class="scale">
+      <span>M0</span><span>M1</span><span>M2</span><span>M3</span><span>M4</span><span>M5</span><span>M6</span><span>M7</span><span>M8</span><span>M9</span><span>M10</span><span>M11</span></div></div>
+    <div class="tl">
+      <div class="tl-row"><div class="tl-label">① Liaisoning &amp; Approvals</div><div class="track"><div class="bar" style="left:0%;width:75%;background:linear-gradient(90deg,#E4C77E,#C9A24B)">Hire #1 · in seat M0 → approvals</div></div></div>
+      <div class="tl-row"><div class="tl-label">Finance &amp; Ops / CRM</div><div class="track"><div class="bar" style="left:8%;width:80%;background:#3d6f8f;color:#eaf1f8">Hire #4 · M1 (payments, RERA financials)</div></div></div>
+      <div class="tl-row"><div class="tl-label">② Head of S&amp;M</div><div class="track"><div class="bar" style="left:42%;width:50%;background:linear-gradient(90deg,#E4C77E,#C9A24B)">Hire #2 · in seat M5 → pre-launch</div></div></div>
+      <div class="tl-row"><div class="tl-label">Sales Executives ×2</div><div class="track"><div class="bar" style="left:67%;width:25%;background:#3d6f8f;color:#eaf1f8">Hires #5–6 · M8</div></div></div>
+      <div class="tl-row"><div class="tl-label">③ Projects / Const. Head</div><div class="track"><div class="bar" style="left:58%;width:34%;background:linear-gradient(90deg,#E4C77E,#C9A24B)">Hire #3 · in seat M7 → tender</div></div></div>
+      <div class="tl-row"><div class="tl-label">Site Engineer</div><div class="track"><div class="bar" style="left:75%;width:17%;background:#3d6f8f;color:#eaf1f8">Hire #7 · M9 (mobilize)</div></div></div>
+    </div>
+    <div style="display:flex;gap:18px;margin-top:10px;font-size:11.5px;color:var(--muted);flex-wrap:wrap">
+      <span><span class="badge b-gold">Gold</span> = milestone anchor (first three hires)</span>
+      <span><span class="badge b-blue">Blue</span> = supporting seats</span>
+      <span>Gate markers: Approvals ≈ M8 · Launch ≈ M9 · Mobilize ≈ M10</span>
+    </div>
+  </div>
+</div>
+
+<!-- 5 SEQUENCE TABLE -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Why <span class="accent">This</span> Order</h2><span class="tag">Lead time, not headcount tidiness</span></div>
+    <table>
+      <thead><tr><th>#</th><th>Seat</th><th>In seat by</th><th>Unlocks</th><th>Lead time</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td><b>1</b></td><td>Liaisoning &amp; Approvals Mgr</td><td>M0</td><td>Approvals gate</td><td>~6 mo runway</td><td><span class="badge b-red">Critical path</span></td></tr>
+        <tr><td><b>2</b></td><td>Head of Sales &amp; Marketing</td><td>M5</td><td>Launch gate</td><td>~4 mo pre-launch</td><td><span class="badge b-red">Critical path</span></td></tr>
+        <tr><td><b>3</b></td><td>Projects / Construction Head</td><td>M7</td><td>Mobilization gate</td><td>~2 mo tender</td><td><span class="badge b-red">Critical path</span></td></tr>
+        <tr><td>4</td><td>Finance &amp; Ops / CRM Mgr</td><td>M1</td><td>Vendor pay, RERA escrow</td><td>1 mo</td><td><span class="badge b-gold">Early enabler</span></td></tr>
+        <tr><td>5–6</td><td>Sales Executives ×2</td><td>M8</td><td>Booking throughput</td><td>3–4 wk</td><td><span class="badge b-blue">On demand</span></td></tr>
+        <tr><td>7</td><td>Site Engineer</td><td>M9</td><td>Day-to-day execution</td><td>3–4 wk</td><td><span class="badge b-blue">On demand</span></td></tr>
+        <tr><td>8</td><td>Marketing / CRM Exec</td><td>M9</td><td>Funnel ops, post-sale</td><td>3–4 wk</td><td><span class="badge b-blue">On demand</span></td></tr>
+      </tbody>
+    </table>
+    <div class="card" style="margin-top:4px"><p style="font-size:12.5px;color:#cdd9e6">The <b style="color:var(--gold2)">first three hires</b> sit on the critical path — each one is the single owner whose absence stalls a gate. They get the full JD / scorecard / comp / sourcing treatment that follows.</p></div>
+  </div>
+</div>
+
+<!-- 6 FIRST THREE OVERVIEW -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>The First <span class="accent">Three Hires</span></h2><span class="tag">One owner per gate</span></div>
+    <div class="grid3" style="margin-top:8px">
+      <div class="card"><h3>Hire #1</h3><div style="font-weight:700;font-size:17px;margin-bottom:6px">Liaisoning &amp; Approvals Mgr</div><ul class="clean"><li>Owns Gate 1: Approvals</li><li>In seat: Month 0</li><li>Comp band: ₹14–24 L fixed</li></ul></div>
+      <div class="card"><h3>Hire #2</h3><div style="font-weight:700;font-size:17px;margin-bottom:6px">Head of Sales &amp; Marketing</div><ul class="clean"><li>Owns Gate 2: Launch</li><li>In seat: Month 5</li><li>Comp band: ₹30–50 L + variable</li></ul></div>
+      <div class="card"><h3>Hire #3</h3><div style="font-weight:700;font-size:17px;margin-bottom:6px">Projects / Construction Head</div><ul class="clean"><li>Owns Gate 3: Mobilization</li><li>In seat: Month 7</li><li>Comp band: ₹26–42 L fixed</li></ul></div>
+    </div>
+    <div class="kpi" style="margin-top:18px">
+      <div class="item"><div class="big">3</div><div class="lab">Critical-path owners</div></div>
+      <div class="item"><div class="big">30</div><div class="lab">Day sourcing sprint</div></div>
+      <div class="item"><div class="big">~₹1.1Cr</div><div class="lab">Combined annual fixed (mid-band)</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 7 HIRE1 JD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #1 — JD · <span class="accent">Liaisoning &amp; Approvals Manager</span></h2><span class="tag">Reports to MD · In seat M0</span></div>
+    <div class="card" style="margin-bottom:4px"><p style="font-size:13.5px"><b style="color:var(--gold2)">Mission:</b> Secure every statutory approval and NOC required to legally launch and build the project, on schedule and without surprises — converting land into a sanctioned, RERA-registered, sellable asset.</p></div>
+    <div class="grid2">
+      <div class="card"><h3>Key Outcomes (12 mo)</h3><ul class="clean">
+        <li>Plan sanction &amp; commencement certificate secured by agreed date</li>
+        <li>RERA registration live before any sale/advertisement</li>
+        <li>All utility NOCs (BESCOM, BWSSB, fire, environment) cleared</li>
+        <li>Zero stop-work / compounding notices in year one</li>
+        <li>Approvals tracker &amp; cost map maintained, no missed renewals</li></ul></div>
+      <div class="card"><h3>Responsibilities</h3><ul class="clean">
+        <li>Drive BBMP/BDA, RERA, KSPCB, fire &amp; utility submissions</li>
+        <li>Manage architects, RCC &amp; legal consultants, liaisoning agents</li>
+        <li>Title due diligence, khata, conversion, encumbrance checks</li>
+        <li>Government &amp; ward-level relationship management</li>
+        <li>Approvals budget, timelines &amp; risk reporting to MD</li></ul></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Must-Have</h3><ul class="clean"><li>8–14 yrs liaisoning for residential/mixed-use in Bangalore</li><li>Hands-on BBMP/BDA/RERA &amp; utility track record</li><li>Existing govt &amp; consultant network in the relevant zones</li><li>Strong on Karnataka real-estate law &amp; documentation</li></ul></div>
+      <div class="card lite"><h3>Nice-to-Have</h3><ul class="clean"><li>Environmental clearance / high-rise experience</li><li>Civil / law / planning background</li><li>Experience with a comparable mid-size developer</li><li>Kannada fluency for ward-level work</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 8 HIRE1 SCORECARD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #1 — <span class="accent">Scorecard</span></h2><span class="tag">Rate A / B / C against evidence — hire only A's on must-wins</span></div>
+    <table>
+      <thead><tr><th>Competency</th><th>What "A" looks like</th><th>Weight</th></tr></thead>
+      <tbody>
+        <tr><td><b>Approvals delivery</b></td><td>Names projects taken from land to CC; cites timelines &amp; blockers solved</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>Govt network depth</b></td><td>Specific, current contacts across BBMP/BDA/RERA/utilities in our zone</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>RERA &amp; compliance</b></td><td>Walks through registration, escrow, QPR &amp; advertising rules unprompted</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td>Consultant management</td><td>Held architects/agents to dates; renegotiated scope &amp; fees</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Integrity &amp; risk handling</td><td>Clear ethical lines; documents everything; no "fixer" shortcuts</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Ownership &amp; reporting</td><td>Runs a live tracker; escalates early; MD never surprised</td><td><span class="badge b-blue">High</span></td></tr>
+      </tbody>
+    </table>
+    <div class="grid2" style="margin-top:6px">
+      <div class="card"><h3>Green Flags</h3><ul class="clean"><li>Talks in approval-stage sequence, not job titles</li><li>Brings a redacted tracker to interview</li><li>Knows current RERA / BBMP fee changes</li></ul></div>
+      <div class="card"><h3>Red Flags</h3><ul class="clean"><li>Vague on which approvals they personally drove</li><li>Implies clearances via under-table-only routes</li><li>Job-hops every &lt;12 months with no project closure</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 9 HIRE2 JD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #2 — JD · <span class="accent">Head of Sales &amp; Marketing</span></h2><span class="tag">Reports to MD · In seat M5</span></div>
+    <div class="card" style="margin-bottom:4px"><p style="font-size:13.5px"><b style="color:var(--gold2)">Mission:</b> Build the demand engine — brand, pricing, channel network and a trained sales team — so the project hits its pre-launch and launch booking targets and converts inventory to cashflow.</p></div>
+    <div class="grid2">
+      <div class="card"><h3>Key Outcomes (launch +90d)</h3><ul class="clean">
+        <li>Pre-launch EOI / booking target achieved before public launch</li>
+        <li>Channel-partner network (CPs) onboarded &amp; producing</li>
+        <li>Cost-per-qualified-lead and conversion within target</li>
+        <li>Sales team hired, trained, scripted; CRM live</li>
+        <li>Pricing &amp; inventory-release strategy signed off with MD</li></ul></div>
+      <div class="card"><h3>Responsibilities</h3><ul class="clean">
+        <li>Own GTM: brand, positioning, pricing, launch plan</li>
+        <li>Build &amp; manage CP + digital + walk-in demand channels</li>
+        <li>Recruit and lead sales execs; set targets &amp; incentives</li>
+        <li>Marketing budget, agency &amp; collateral management</li>
+        <li>Weekly funnel, booking &amp; collection reporting to MD</li></ul></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Must-Have</h3><ul class="clean"><li>10–16 yrs residential real-estate S&amp;M, Bangalore market</li><li>Has launched &amp; sold out at least one project / tower</li><li>Strong CP network + digital demand-gen literacy</li><li>Built and led sales teams to target</li></ul></div>
+      <div class="card lite"><h3>Nice-to-Have</h3><ul class="clean"><li>Branded-developer pedigree (Prestige/Sobha/Brigade tier)</li><li>CRM (Sell.Do / Salesforce) &amp; performance-marketing depth</li><li>NRI / luxury segment experience</li><li>MBA marketing</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 10 HIRE2 SCORECARD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #2 — <span class="accent">Scorecard</span></h2><span class="tag">Sell-out evidence beats agency-speak</span></div>
+    <table>
+      <thead><tr><th>Competency</th><th>What "A" looks like</th><th>Weight</th></tr></thead>
+      <tbody>
+        <tr><td><b>Launch &amp; sell-through</b></td><td>Quantifies units sold, velocity, ₹ value on a named launch</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>Channel network</b></td><td>Can activate 30+ producing CPs in weeks; names them</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>Demand-gen economics</b></td><td>Talks CPL, CAC, conversion, channel mix with real numbers</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td>Team building</td><td>Hired, ramped &amp; retained sales execs to quota</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Pricing strategy</td><td>Has run inventory-release &amp; price-laddering to protect margin</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Brand &amp; collateral</td><td>Owns positioning; not just an agency coordinator</td><td><span class="badge b-blue">Med</span></td></tr>
+      </tbody>
+    </table>
+    <div class="grid2" style="margin-top:6px">
+      <div class="card"><h3>Green Flags</h3><ul class="clean"><li>Leads with numbers &amp; cohort velocity, not adjectives</li><li>References from CPs and ex-reports check out</li><li>Has a 90-day pre-launch plan ready</li></ul></div>
+      <div class="card"><h3>Red Flags</h3><ul class="clean"><li>Only "brand/marketing", no booking accountability</li><li>Can't explain a project that didn't sell</li><li>No CP relationships of their own</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 11 HIRE3 JD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #3 — JD · <span class="accent">Projects / Construction Head</span></h2><span class="tag">Reports to MD · In seat M7</span></div>
+    <div class="card" style="margin-bottom:4px"><p style="font-size:13.5px"><b style="color:var(--gold2)">Mission:</b> Take the sanctioned project from paper to mobilized site — tendering, BOQ, schedule, quality &amp; safety — and deliver to spec, on budget, on the committed RERA date.</p></div>
+    <div class="grid2">
+      <div class="card"><h3>Key Outcomes (mobilize +120d)</h3><ul class="clean">
+        <li>Contractors tendered &amp; awarded; BOQ &amp; rates locked</li>
+        <li>Master schedule baselined; site established &amp; mobilized</li>
+        <li>QA/QC &amp; safety (EHS) systems operational from day one</li>
+        <li>Cost &amp; schedule variance held within tolerance</li>
+        <li>RERA quarterly progress commitments met</li></ul></div>
+      <div class="card"><h3>Responsibilities</h3><ul class="clean">
+        <li>Tendering, vendor selection, contracts &amp; rate negotiation</li>
+        <li>Planning, BOQ, billing certification &amp; cost control</li>
+        <li>Site execution, quality, safety &amp; statutory site compliance</li>
+        <li>Manage site engineers, contractors &amp; consultants</li>
+        <li>Progress, cost &amp; risk reporting to MD</li></ul></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Must-Have</h3><ul class="clean"><li>12–18 yrs civil/project execution on residential builds</li><li>Delivered ≥1 G+ high-rise / comparable project end-to-end</li><li>Strong on tendering, BOQ, billing &amp; cost control</li><li>Bangalore contractor &amp; vendor network</li></ul></div>
+      <div class="card lite"><h3>Nice-to-Have</h3><ul class="clean"><li>RERA-project delivery &amp; QPR experience</li><li>MEP coordination &amp; modern construction tech (Mivan/precast)</li><li>PMP / planning-software (Primavera/MSP) fluency</li><li>B.E Civil + M.Tech / construction mgmt</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 12 HIRE3 SCORECARD -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Hire #3 — <span class="accent">Scorecard</span></h2><span class="tag">Delivered, on time, on budget — verifiable</span></div>
+    <table>
+      <thead><tr><th>Competency</th><th>What "A" looks like</th><th>Weight</th></tr></thead>
+      <tbody>
+        <tr><td><b>End-to-end delivery</b></td><td>Names a project handed over on/near schedule; owns the misses too</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>Cost &amp; tendering</b></td><td>Walks BOQ, rate analysis, savings achieved vs. estimate</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td><b>Planning &amp; scheduling</b></td><td>Baselines, tracks &amp; recovers slippage with a real method</td><td><span class="badge b-gold">Must-win</span></td></tr>
+        <tr><td>Quality &amp; safety</td><td>Has run QA/QC &amp; EHS systems, not just "followed" them</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Vendor leverage</td><td>Reliable contractor base; can mobilize fast in Bangalore</td><td><span class="badge b-blue">High</span></td></tr>
+        <tr><td>Team leadership</td><td>Built &amp; held site teams; low rework &amp; attrition</td><td><span class="badge b-blue">Med</span></td></tr>
+      </tbody>
+    </table>
+    <div class="grid2" style="margin-top:6px">
+      <div class="card"><h3>Green Flags</h3><ul class="clean"><li>Speaks in schedule + cost variance, not just "we built it"</li><li>Brings a sanitized schedule / BOQ sample</li><li>Owns a delay and how it was recovered</li></ul></div>
+      <div class="card"><h3>Red Flags</h3><ul class="clean"><li>Only "supervised", never owned budget/schedule</li><li>Blames contractors for every overrun</li><li>No verifiable handed-over project</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 13 COMP BENCHMARK -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Comp Benchmarks — <span class="accent">Bangalore Real Estate</span></h2><span class="tag">Annual fixed CTC, ₹ Lakh · mid-size developer · 2026</span></div>
+    <div class="chart-wrap"><canvas id="compChart"></canvas></div>
+    <table style="margin-top:6px">
+      <thead><tr><th>Role</th><th class="num">Low</th><th class="num">Mid</th><th class="num">High</th><th>Variable / Incentive</th></tr></thead>
+      <tbody>
+        <tr><td>Liaisoning &amp; Approvals Mgr</td><td class="num">14</td><td class="num">18</td><td class="num">24</td><td>10–20% on approval milestones</td></tr>
+        <tr><td>Head of Sales &amp; Marketing</td><td class="num">30</td><td class="num">38</td><td class="num">50</td><td>30–60% of fixed; per-unit / sell-out bonus</td></tr>
+        <tr><td>Projects / Construction Head</td><td class="num">26</td><td class="num">32</td><td class="num">42</td><td>Delivery &amp; cost-saving bonus</td></tr>
+        <tr><td style="color:var(--muted)">(ref) Sales Executive</td><td class="num" style="color:var(--muted)">4.5</td><td class="num" style="color:var(--muted)">6</td><td class="num" style="color:var(--muted)">8</td><td style="color:var(--muted)">0.3–0.5% brokerage / booking incentive</td></tr>
+      </tbody>
+    </table>
+    <div class="assume" style="margin-top:6px">Directional market ranges for a mid-size developer — branded-developer pedigree (Prestige/Sobha/Brigade tier) prices ~15–25% higher. Validate against a live comp pull before making offers.</div>
+  </div>
+</div>
+
+<!-- 14 SOURCING PLAN -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>30-Day <span class="accent">Sourcing Plan</span></h2><span class="tag">Run all three roles in parallel · MD owns final panel</span></div>
+    <table>
+      <thead><tr><th>Window</th><th>Liaisoning &amp; Approvals</th><th>Head of S&amp;M</th><th>Projects / Const. Head</th></tr></thead>
+      <tbody>
+        <tr><td><b>Days 1–7</b><br><span class="tag">Calibrate &amp; map</span></td><td>Finalize JD/scorecard; map 30 liaisoning leads from peer developers &amp; consultants</td><td>Finalize JD; map S&amp;M heads at comparable launches; brief 2 retained recruiters</td><td>Finalize JD; map project heads from G+ residential builders</td></tr>
+        <tr><td><b>Days 8–15</b><br><span class="tag">Source &amp; screen</span></td><td>Referrals from architects/RERA consultants; 15 outreach; screen 8</td><td>LinkedIn + recruiter pipeline; CP-network referrals; screen 10</td><td>Naukri + referrals + contractor network; screen 8</td></tr>
+        <tr><td><b>Days 16–23</b><br><span class="tag">Interview</span></td><td>MD + scorecard panel; 4–5 deep interviews; reference pre-checks</td><td>Case: 90-day launch plan; 4–5 interviews; CP back-channel refs</td><td>Case: tender + schedule walkthrough; 4–5 interviews</td></tr>
+        <tr><td><b>Days 24–30</b><br><span class="tag">Close</span></td><td>Final 2; references; <b>offer Hire #1</b></td><td>Final 2; references; <b>offer Hire #2</b></td><td>Final 2; references; <b>offer Hire #3</b></td></tr>
+      </tbody>
+    </table>
+    <div class="grid3" style="margin-top:6px">
+      <div class="card lite"><h3>Channels</h3><ul class="clean"><li>Referrals (peer developers, consultants)</li><li>Retained recruiter for S&amp;M head</li><li>Naukri / LinkedIn / IIM Jobs</li></ul></div>
+      <div class="card lite"><h3>Targets</h3><ul class="clean"><li>≥30 mapped &amp; ≥8 screened per role</li><li>≥4 panel interviews per role</li><li>2 closable finalists each by Day 30</li></ul></div>
+      <div class="card lite"><h3>Guardrails</h3><ul class="clean"><li>Reference + background check before offer</li><li>No A-on-must-wins → keep searching</li><li>Notice periods may push joining 30–90d — start now</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- 15 RISKS -->
+<div class="slide dense">
+  <div class="slide-content">
+    <div class="head-row"><h2>Sequencing <span class="accent">Risks &amp; Mitigations</span></h2><span class="tag">What breaks the gate plan</span></div>
+    <div class="grid2">
+      <div class="card"><h3>Notice-Period Lag</h3><p>Senior real-estate hires carry 60–90 day notices. <b style="color:var(--gold2)">Mitigation:</b> start sourcing Hire #1 today; buy out / negotiate early joins for critical path.</p></div>
+      <div class="card"><h3>Approvals Slip</h3><p>If Gate 1 slips, Launch &amp; Mobilize cascade. <b style="color:var(--gold2)">Mitigation:</b> Hire #1 is the single non-negotiable seat; over-resource consultants behind them.</p></div>
+      <div class="card"><h3>S&amp;M Head Too Late</h3><p>Hiring at launch = no pre-launch funnel. <b style="color:var(--gold2)">Mitigation:</b> in seat M5, a full ~4 months before public launch.</p></div>
+      <div class="card"><h3>Comp Drift</h3><p>Branded-developer counter-offers. <b style="color:var(--gold2)">Mitigation:</b> benchmark live, lead with variable upside &amp; ownership scope, decide fast.</p></div>
+    </div>
+    <div class="card" style="margin-top:4px"><p style="font-size:12.5px;color:#cdd9e6"><b style="color:var(--gold2)">Cash discipline —</b> seats 5–8 are deliberately "hire on demand" so payroll scales with the project, not ahead of it. Only the three gate-owners + Finance are committed up front.</p></div>
+  </div>
+</div>
+
+<!-- 16 NEXT STEPS -->
+<div class="slide">
+  <div class="slide-content">
+    <span class="eyebrow">Next Steps</span>
+    <h1 class="slide-title" style="font-size:clamp(28px,5vw,56px)">Start the Clock on Hire #1</h1>
+    <div class="grid3" style="width:min(95%,900px);margin-top:18px">
+      <div class="card"><h3>This Week</h3><ul class="clean"><li>Confirm the real 8-FTE structure</li><li>Approve the three JDs &amp; scorecards</li><li>Brief recruiter for S&amp;M head</li></ul></div>
+      <div class="card"><h3>Day 30</h3><ul class="clean"><li>Offers out to all three gate-owners</li><li>Finance &amp; Ops sourcing kicked off</li><li>Live comp pull validated</li></ul></div>
+      <div class="card"><h3>I Can Do Next</h3><ul class="clean"><li>Re-sequence to your real org</li><li>Outreach message + interview kits</li><li>Offer-letter &amp; incentive structures</li></ul></div>
+    </div>
+    <p class="sub" style="margin-top:18px">Share your actual 8 roles and target launch date, and I'll lock exact in-seat dates to your milestones.</p>
+  </div>
+</div>
+
+</div><!-- /.slide-deck -->
+
+<div class="foot">8-FTE Hiring Sequence · Bangalore Residential Developer</div>
+<div class="nav-controls">
+  <button class="nav-btn" onclick="prevSlide()">←</button>
+  <span class="slide-counter"><span id="current">1</span> / <span id="total">16</span></span>
+  <button class="nav-btn" onclick="nextSlide()">→</button>
+</div>
+
+<script>
+let current=1;
+const total=document.querySelectorAll('.slide').length;
+document.getElementById('total').textContent=total;
+let chartDone=false;
+function showSlide(n){
+  if(n<1)n=1; if(n>total)n=total; current=n;
+  document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i===n-1));
+  document.getElementById('current').textContent=n;
+  document.getElementById('progressBar').style.width=(n/total*100)+'%';
+  if(n===13&&!chartDone){drawChart();chartDone=true;}
+}
+function nextSlide(){showSlide(current+1)}
+function prevSlide(){showSlide(current-1)}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextSlide();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prevSlide();}
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-controls')&&!e.target.closest('.slide.dense'))nextSlide();});
+function drawChart(){
+  new Chart(document.getElementById('compChart'),{
+    type:'bar',
+    data:{labels:['Liaisoning & Approvals','Head of Sales & Mktg','Projects / Const. Head'],
+      datasets:[{label:'Fixed CTC range (₹ Lakh)',
+        data:[[14,24],[30,50],[26,42]],
+        backgroundColor:'rgba(201,162,75,0.35)',borderColor:'#C9A24B',borderWidth:1.5,borderRadius:6,barThickness:34},
+        {label:'Mid-point',type:'scatter',
+        data:[{x:18,y:0},{x:38,y:1},{x:32,y:2}],
+        pointStyle:'rectRot',pointRadius:8,pointBackgroundColor:'#E4C77E',pointBorderColor:'#0B1B2B',pointBorderWidth:2}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#9DB2C6',font:{size:11},usePointStyle:true}},
+        tooltip:{callbacks:{label:c=>c.datasetIndex===0?`Range: ₹${c.raw[0]}–${c.raw[1]} L`:`Mid: ₹${c.raw.x} L`}}},
+      scales:{x:{min:0,max:55,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9DB2C6',callback:v=>'₹'+v+'L'}},
+        y:{grid:{display:false},ticks:{color:'#EAF1F8',font:{size:12}}}}}
+  });
+}
+showSlide(1);
+</script>
+</body>
+</html>
